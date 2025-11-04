@@ -80,6 +80,7 @@ def main():
                        type=str,
                        # action='extend',
                        nargs='*',
+                       default="",
                        help='Download track(s), album(s), playlist(s), podcast episode(s), or artist(s) specified by the URL(s) passed as a command line argument(s). If an artist\'s URL is given, all albums by the specified artist will be downloaded. Can take multiple URLs as multiple arguments.')
     group.add_argument('-f', '--file',
                        type=str,
