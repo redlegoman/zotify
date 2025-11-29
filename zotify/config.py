@@ -611,13 +611,13 @@ class Zotify:
         # Handle sub-library logging
         Zotify.LOGFILE = Path(Zotify.CONFIG.get_root_path() / 
                          ("zotify_" + ("DEBUG_" if Zotify.CONFIG.debug() else "") + f"{Zotify.DATETIME_LAUNCH}.log"))
-        Zotify.logger = logging.getLogger("zotify.debug")
         Printer.hashtaged(PrintChannel.DEBUG, f"{Zotify.LOGFILE.name} logging to {Zotify.LOGFILE.resolve().parent}")
         logging.basicConfig(level=logging.DEBUG if Zotify.CONFIG.debug() else logging.CRITICAL,
                             filemode="x", filename=Zotify.LOGFILE)
         
-        with Loader(PrintChannel.MANDATORY, "Logging in..."):
+        with Loader("Logging in...", PrintChannel.MANDATORY):
             Zotify.login(args)
+        Zotify.LOGGER = logging.getLogger("zotify.debug")
         
         Printer.debug("Session Initialized Successfully")
         quality, bitrate = self.get_download_quality(Zotify.CONFIG.get_download_qual_pref())
@@ -716,7 +716,7 @@ class Zotify:
                 Printer.hashtaged(PrintChannel.ERROR, 'FAILED TO FETCH AUDIO KEY\n' +
                                                       'MAY BE CAUSED BY RATE LIMITS - CONSIDER INCREASING `BULK_WAIT_TIME`\n' +
                                                      f'GID: {gid[5:]} - File_ID: {fileid[8:]}')
-                Printer._logger("\n".join(e.args), PrintChannel.ERROR)
+                Printer.logger("\n".join(e.args), PrintChannel.ERROR)
             else:        
                 raise e
         except FeederException as e:
@@ -734,7 +734,7 @@ class Zotify:
                 status_code = e.args[0].split("Status code ")[1]
                 Printer.hashtaged(PrintChannel.ERROR, 'FAILED TO FETCH AUDIO FILE\n' +
                                                       f'CONNECTION ERROR WHEN FETCHING CONTENT STREAM - STATUS CODE {status_code}')
-                Printer._logger("\n".join(e.args), PrintChannel.ERROR)
+                Printer.logger("\n".join(e.args), PrintChannel.ERROR)
             else:
                 raise e
         

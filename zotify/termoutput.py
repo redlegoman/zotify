@@ -32,7 +32,7 @@ class PrintChannel(Enum):
     ERROR = PRINT_ERRORS
     API_ERROR = PRINT_API_ERRORS
     
-    PROGRESS_INFO = PRINT_PROGRESS_INFO
+    LOADER = PRINT_PROGRESS_INFO
     SKIPPING = PRINT_SKIPS
     DOWNLOADS = PRINT_DOWNLOADS
 
@@ -61,22 +61,26 @@ class Printer:
         return columns
     
     @staticmethod
-    def _logger(msg: str | dict, channel: PrintChannel) -> None:
-        if channel not in {PrintChannel.WARNING, PrintChannel.ERROR, PrintChannel.API_ERROR, PrintChannel.DEBUG,}:
+    def logger(msg: str | dict, channel: PrintChannel) -> None:
+        if channel in {PrintChannel.LOADER}:
             return
         from zotify.config import Zotify
-        if Zotify.LOGGER:
-            if isinstance(msg, BaseException):
-                msg = "".join(TracebackException.from_exception(msg).format())
-            elif isinstance(msg, dict):
-                msg = pformat(msg, indent=2)
-            msg = "\n\n" + msg.strip() + "\n"
-            if channel is PrintChannel.WARNING:
-                Zotify.LOGGER.warning(msg)
-            elif channel in {PrintChannel.ERROR, PrintChannel.API_ERROR}:
-                Zotify.LOGGER.error(msg)
-            elif channel is PrintChannel.DEBUG:
+        if Zotify.LOGGER is None:
+            return
+        if isinstance(msg, BaseException):
+            msg = "".join(TracebackException.from_exception(msg).format())
+        elif isinstance(msg, dict):
+            msg = pformat(msg, indent=2)
+        msg = "\n\n" + msg.strip() + "\n"
+        if channel is PrintChannel.WARNING:
+            Zotify.LOGGER.warning(msg)
+        elif channel in {PrintChannel.ERROR, PrintChannel.API_ERROR}:
+            Zotify.LOGGER.error(msg)
+        elif Zotify.CONFIG.debug():
+            if channel is PrintChannel.DEBUG:
                 Zotify.LOGGER.debug(msg)
+            else:
+                Zotify.LOGGER.info(msg)
     
     @staticmethod
     def _api_shrink(obj: list | tuple | dict) -> dict:
@@ -145,7 +149,7 @@ class Printer:
     @staticmethod
     def new_print(channel: PrintChannel, msg: str, category: PrintCategory = PrintCategory.NONE, 
                   skip_toggle: bool = False, end: str = "\n") -> None:
-        Printer._logger(msg, channel)
+        Printer.logger(msg, channel)
         if channel != PrintChannel.MANDATORY:
             from zotify.config import Zotify
             if Zotify.CONFIG.get_standard_interface():
@@ -314,7 +318,7 @@ class Loader:
         # handle exceptions with those variables ^
         self.stop()
     
-    def __init__(self, channel, desc="Loading...", end='', timeout=0.1, mode='prog', disabled: bool = False):
+    def __init__(self, desc="Loading...", channel: PrintChannel = PrintChannel.LOADER, end='', timeout=0.1, mode='prog', disabled: bool = False):
         """
         A loader-like context manager
         
