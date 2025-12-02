@@ -1779,7 +1779,14 @@ class LikedSong(UserItem):
     def create_m3u8_playlists(self):
         archive_mode = Zotify.CONFIG.get_liked_songs_archive_m3u8()
         liked_tracks: list[Track] = self.requested_objs[0]
-        m3u8_path = self.get_m3u8_dir(liked_tracks, force_common_dir=archive_mode) / f"{self.name}.m3u8"
+        m3u8_dir = self._path_root
+        if archive_mode:
+            for part in PurePath(Zotify.CONFIG.get_output(self.clsn)).parts:
+                if "{" in part or "}" in part: break
+                m3u8_dir = m3u8_dir / part
+        if m3u8_dir == self._path_root:
+            m3u8_dir = self.get_m3u8_dir(liked_tracks, force_common_dir=archive_mode)
+        m3u8_path = m3u8_dir / f"{self.name}.m3u8"
         
         def find_sync_point(liked_tracks: list[Track], m3u8_entry_path: str) -> int | None:
             for i, liked_track in enumerate(liked_tracks):
