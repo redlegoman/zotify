@@ -624,7 +624,8 @@ class Zotify:
         #redirect_url = f"http://0.0.0.0:{port}/login"
         print("XXXXX")
         #session_builder.login_credentials = OAuth(MercuryRequests.keymaster_client_id, redirect_url, "http://0.0.0.0:80", oauth_print).flow()
-        session_builder.login_credentials = OAuth(MercuryRequests.keymaster_client_id, redirect_url, "0.0.0.0", oauth_print).flow()
+        #session_builder.login_credentials = OAuth(MercuryRequests.keymaster_client_id, redirect_url, "0.0.0.0", oauth_print).flow()
+        session_builder.login_credentials = OAuth(MercuryRequests.keymaster_client_id, redirect_url, listen_address, oauth_print).flow()
         print(session_builder.login_credentials)
         cls.SESSION = session_builder.create()
         return
