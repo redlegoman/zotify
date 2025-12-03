@@ -7,6 +7,7 @@ import re
 import requests
 from librespot.audio.decoders import VorbisOnlyAudioQuality
 from librespot.core import Session, OAuth
+#import librespot.oauth 
 from librespot.mercury import MercuryRequests
 from librespot.proto.Authentication_pb2 import AuthenticationType
 from pathlib import Path, PurePath
@@ -97,6 +98,7 @@ CONFIG_VALUES = {
     RETRY_ATTEMPTS:             { 'default': '1',                       'type': int,    'arg': ('--retry-attempts'                       ,) },
     CHUNK_SIZE:                 { 'default': '20000',                   'type': int,    'arg': ('--chunk-size'                           ,) },
     REDIRECT_ADDRESS:           { 'default': '127.0.0.1',               'type': str,    'arg': ('--redirect-address'                     ,) },
+    LISTEN_ADDRESS:             { 'default': '0.0.0.0',                 'type': str,    'arg': ('--listen-address'                       ,) },
     
     # Terminal & Logging Options
     PRINT_SPLASH:               { 'default': 'False',                   'type': bool,   'arg': ('--print-splash'                         ,) },
@@ -529,6 +531,13 @@ class Config:
         if redirect_address:
             return redirect_address
         return '127.0.0.1'
+
+    @classmethod
+    def get_listen_address(cls) -> tuple[str, str]:
+        listen_address = cls.get(LISTEN_ADDRESS)
+        if listen_address:
+            return listen_address
+        return '0.0.0.0'
     
     @classmethod
     def get_skip_comp_albums(cls) -> bool:
@@ -610,7 +619,13 @@ class Zotify:
         
         port = 4381
         redirect_url = f"http://{cls.CONFIG.get_oauth_address()}:{port}/login"
-        session_builder.login_credentials = OAuth(MercuryRequests.keymaster_client_id, redirect_url, oauth_print).flow()
+        listen_address = f"{cls.CONFIG.get_listen_address()}"
+        print(listen_address)
+        #redirect_url = f"http://0.0.0.0:{port}/login"
+        print("XXXXX")
+        #session_builder.login_credentials = OAuth(MercuryRequests.keymaster_client_id, redirect_url, "http://0.0.0.0:80", oauth_print).flow()
+        session_builder.login_credentials = OAuth(MercuryRequests.keymaster_client_id, redirect_url, "0.0.0.0", oauth_print).flow()
+        print(session_builder.login_credentials)
         cls.SESSION = session_builder.create()
         return
     
